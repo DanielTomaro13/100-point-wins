@@ -147,6 +147,37 @@ ggplot(score_bracket_summary, aes(x = ScoreBracket, y = WinRate)) +
   ylim(0, 1) +
   theme_minimal(base_size = 14)
 
+# Lets look at the margin of games where one team scored 100
+wins_100_plus <- team_results %>%
+  filter(Win == 1 & Points >= 100)
+wins_100_plus <- wins_100_plus %>%
+  mutate(
+    Margin = Points - OpponentPoints,
+    OpponentScoreBracket = case_when(
+      OpponentPoints < 50 ~ "<50",
+      OpponentPoints < 75 ~ "50–74",
+      OpponentPoints < 90 ~ "75–89",
+      OpponentPoints < 100 ~ "90–99",
+      TRUE ~ "100+"
+    )
+  )
+ggplot(wins_100_plus, aes(x = Margin)) +
+  geom_histogram(binwidth = 10, fill = "darkgreen", color = "white") +
+  labs(
+    title = "Margin in Games Where Team Scored 100+ and Won",
+    x = "Winning Margin",
+    y = "Number of Games"
+  ) +
+  theme_minimal(base_size = 14)
+wins_100_plus %>%
+  group_by(OpponentScoreBracket) %>%
+  summarise(
+    Games = n(),
+    AvgMargin = mean(Margin),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(OpponentScoreBracket))
+
 team_results <- team_results %>%
   mutate(
     ScoreBracket = case_when(
